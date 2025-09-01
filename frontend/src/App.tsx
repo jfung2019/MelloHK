@@ -30,16 +30,14 @@ function App() {
     <div className="flex flex-col min-h-screen">
       <div className="w-full mx-auto px-8">
         <NavBar />
-        <main>
-          <Routes>
-            <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-            <Route path="/home" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-            <Route path="/signup" element={authUser ? <Navigate to="/" /> : <SignUpPage />} />
-            <Route path="/login" element={authUser ? <Navigate to="/" /> : <LoginPage />} />
-            <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
-            <Route path="/setting" element={<SettingPage />} />
-          </Routes>
-        </main>
+        <Routes>
+          <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+          <Route path="/home" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+          <Route path="/signup" element={authUser ? <Navigate to="/" /> : <SignUpPage />} />
+          <Route path="/login" element={authUser ? <Navigate to="/" /> : <LoginPage />} />
+          <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
+          <Route path="/setting" element={<SettingPage />} />
+        </Routes>
         <Toaster />
       </div>
     </div>
