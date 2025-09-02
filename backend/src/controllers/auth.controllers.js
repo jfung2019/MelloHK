@@ -21,6 +21,8 @@ const signup = async (req, res) => {
     // const salt = await bcrypt.genSalt(10); moved to user model schema
     // convert password to non readable text e.g. 12345 -> wedgadw_123ghagd#12312
     // const hashedPassword = await bcrypt.hash(password, salt); moved to user model schema
+
+    // save to database
     const newUser = await UserModel.create({
       name,
       email,
@@ -31,8 +33,7 @@ const signup = async (req, res) => {
     // create new user for stream for getstreamio
     // generate jwt, add token and cookie to the response
     generatetoken(newUser._id, res);
-    // save to database
-    // await newUser.save();
+    
     return res.status(201).json({
       success: true,
       user: newUser
@@ -55,12 +56,7 @@ const login = async (req, res) => {
     const isPassWordValid = await user.isMatchPassword(password);
     if (!isPassWordValid || password.length < 6) return res.status(400).json({ message: "Invalid credentials" });
     generatetoken(user._id, res);
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      profilePicture: user.profilePicture
-    });
+    res.status(200).json({ success: true, user });
   } catch (err) {
     console.log("error in sign up controller", err.message)
     res.status(500).json({ message: "Internal Server Error" });
@@ -69,9 +65,8 @@ const login = async (req, res) => {
 
 const logout = (req, res) => {
   try {
-    // clear login cookies
-    res.cookie("jwt", "", { maxAge: 0 });
-    res.status(200).json({ message: "Logout Successfull!" });
+    res.clearCookie("jwt");
+    res.status(200).json({ success: true, message: "Logout Successfull!" });
   } catch (err) {
     console.log("error in sign up controller", err.message)
     res.status(500).json({ message: "Internal Server Error" });
