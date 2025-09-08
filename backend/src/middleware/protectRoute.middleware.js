@@ -19,13 +19,12 @@ export const protectRoute = async (req, res, next)=> {
     req.authencatedData = { user: user };
     console.log('protected route', req.authencatedData);
 
-
     // other function will run after this
     // router.put('/profileUpdate', protectRoute, profileUpdate);
     // profileUpdate will run after protectRoute
     next();
   } catch (err) {
-    console.log("Error in protectRoute middleware: ", err.message)
-    res.status(500).json({ message: "Internal server error" })
+    console.log("Error in protectRoute middleware: ", err.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

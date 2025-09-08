@@ -1,7 +1,7 @@
 import UserModel from "../models/user.model.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import cloudinary from "../services/cloudinary.js";
+// import cloudinary from "../services/cloudinary.js";
+import { createOrUpdateStreamUser } from "../services/streamChat.js";
 
 const signup = async (req, res) => {
   const { email, name, password } = req.body;
@@ -31,9 +31,21 @@ const signup = async (req, res) => {
     });
 
     // create new user for stream for getstreamio
+    // use created/update account details in stream chat
+    try {
+      await createOrUpdateStreamUser({
+        id: newUser._id.toString(),
+        name: newUser.name,
+        image: newUser.profilePicture || "",
+      });
+      console.log(`Created Stream User successfully for: ", ${newUser.name} with id: ${newUser._id}`)
+    } catch (error) {
+      console.log("error in createStreamUser", error)
+    }
+
     // generate jwt, add token and cookie to the response
     generatetoken(newUser._id, res);
-    
+
     return res.status(201).json({
       success: true,
       user: newUser
@@ -73,17 +85,40 @@ const logout = (req, res) => {
   }
 }
 
+// need an update or delete
 const profileUpdate = async (req, res) => {
   try {
-    const { profilePicture } = req.body;
-    const userId = req.authencatedData.user._id;
-    if (!profilePicture) return res.status(400).json({ message: "Profile picture required" });
-    const uploadedImage = await cloudinary.uploader.upload(profilePicture);
+    // Request body: { profilePicture, bio, location } 
+    // From protectedRoute middleware
+    const authenticatedUserId = req.authencatedData.user._id;
+    const userId = req.body.id;
+    // Exclude password and email from update
+    const { password, email, ...fields } = req.body;
+    if ('password' in req.body || 'email' in req.body) return res.status(400).json({ message: "Updating password or email is not allowed via this endpoint." });
+
+    // check if the userId from cookies or authenticated user id is = to the id being sent from frontend
+    if (authenticatedUserId.toString() !== userId.toString()) return res.status(400).json({ message: "You are not authorized to update other's profile." });
+
+    // profileComplete: true change this to only true if they are actually on onboarding process right after signup page completion.
+    // we still reuse this function on profile update setting page.
     const updatedUser = await UserModel.findByIdAndUpdate(
-      userId,
-      { profilePicture: uploadedImage.secure_url },
+      authenticatedUserId,
+      { ...fields, profileComplete: true },
       { new: true }
     );
+    if (!updatedUser) return res.status(404).json({ message: "User not found!" });
+
+    // Also update user data in stream
+    try {
+      await createOrUpdateStreamUser({
+        id: updatedUser._id.toString(),
+        name: updatedUser.name,
+        image: updatedUser.profilePicture || "",
+      });
+      console.log(`Updated Stream User successfully for: ", ${updatedUser.name} with id: ${updatedUser._id}`)
+    } catch (error) {
+      console.log("error in profileUpdate", error)
+    }
     res.status(200).json(updatedUser);
   } catch (err) {
     console.log("error in profileUpdate", err.message);
@@ -103,14 +138,12 @@ const checkAuth = (req, res) => {
 // add token and cookie to the response
 const generatetoken = (userId, res) => {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
-  console.log("res", res);
   res.cookie("jwt", token, {
     maxAge: 7 * 24 * 60 * 60 * 1000, //ms
     httpOnly: true, // prevent XSS attacks cross-site scripting attacks
     sameSite: "strict", // CSRF attacks cross-site request forgery attacks
     secure: process.env.NODE_ENV === "production"
   });
-  console.log("res token", token);
 }
 
 export { login, logout, signup, profileUpdate, checkAuth };

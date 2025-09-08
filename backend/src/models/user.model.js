@@ -8,10 +8,12 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, minLength: 6 },
     profilePicture: { type: String, default: "" },
     bio: { type: String, default: "" },
+    location: { type: String, default: "" },
     friends: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
-    }]
+    }],
+    profileComplete: { type: Boolean, default: false }
   },
   { timestamps: true }
 )

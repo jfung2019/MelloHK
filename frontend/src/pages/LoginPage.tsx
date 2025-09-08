@@ -93,9 +93,11 @@ function LoginPage() {
         </div>
       </div>
       {/* left side */}
-      <div className="hidden lg:flex w-full min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700 p-8">
+      <div className="hidden lg:flex w-full min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-primary/10 p-8">
         <div className="flex flex-col items-center gap-4">
-          <MessageSquareText className="size-20 text-primary" />
+          <div className="relative aspect-square max-w-md mx-auto">
+            <img src="/message_image_02.png" alt="Language connection illustration" className="w-full h-full" />
+          </div>
           <h2 className="text-2xl font-bold text-primary">Chat. Connect. Discover.</h2>
           <p className="text-center text-gray-200/80 max-w-xs">Experience real-time conversations and make new friends in Hong Kong. Join MelloHK and be part of a vibrant community!</p>
         </div>

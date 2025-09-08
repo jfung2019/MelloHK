@@ -1,7 +1,9 @@
 import { create } from "zustand";
-import axiosFetcher from "../services/axios";
+import axiosInstance from "../services/axios";
 import toast from "react-hot-toast";
-import type { AuthStore, BackendUser, loginPayload, SignUpPayload, UsersStore } from "../types/types";
+import type { AuthStore, BackendUser, loginPayload, ProfileUpdatePayload, SignUpPayload, ThemeStore, UsersStore } from "../types/types";
+
+const THEME_KEY = "saved-theme";
 
 export const useAuthStore = create<AuthStore>((set) => ({
   authUser: null,
@@ -9,10 +11,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
   isSigningUp: false,
   isLoggingIn: false,
   isUpdatingProfile: false,
+  isSavingProfileLoading: false,
   checkAuthentication: async () => {
     console.log("checking Authentication...");
     try {
-      const res = await axiosFetcher.get("/auth/check");
+      const res = await axiosInstance.get("/auth/check");
       const authUserData = res.data;
       set({
         authUser: {
@@ -20,19 +23,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
           name: authUserData.name,
           email: authUserData.email,
           profilePicture: authUserData.profilePicture,
+          profileComplete: authUserData.profileComplete,
+          bio: authUserData.bio,
+          location: authUserData.location,
+          friends: authUserData.friends,
           createdAt: authUserData.createdAt,
-          updatedAt: authUserData.updatedAt
+          updatedAt: authUserData.updatedAt,
         }
       });
-      await userStore.getState().getAllUsers();
-      console.log("friendlist", userStore.getState().friendList)
     } catch (error) {
       set({ authUser: null });
-      if (error instanceof Error) {
-        console.log("useAuthStore checkAuthentication error 1", error.response.data.message);
-      } else {
-        console.log("useAuthStore checkAuthentication error 2", error);
-      }
+      console.log("useAuthStore checkAuthentication error 1", error);
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -40,16 +41,21 @@ export const useAuthStore = create<AuthStore>((set) => ({
   signUp: async (data: SignUpPayload) => {
     set({ isSigningUp: true });
     try {
-      const res = await axiosFetcher.post("/auth/signup", data);
-      const authUserData = res.data;
+      const res = await axiosInstance.post("/auth/signup", data);
+      const authUserData = res.data.user;
       set({
         authUser: {
           id: authUserData._id,
           name: authUserData.name,
           email: authUserData.email,
-          profilePicture: authUserData.profilePicture
+          profilePicture: authUserData.profilePicture,
+          profileComplete: authUserData.profileComplete,
+          bio: authUserData.bio,
+          location: authUserData.location,
+          friends: authUserData.friends
         }
       });
+      console.log("useAuthStore signUp authUserData", authUserData);
       toast.success("Account created successfully!");
     } catch (error) {
       console.log("useAuthStore signUp error", error);
@@ -62,16 +68,21 @@ export const useAuthStore = create<AuthStore>((set) => ({
     // set({ authUser: null })
     set({ isLoggingIn: true });
     try {
-      const res = await axiosFetcher.post("/auth/login", data)
-      const authUserData = res.data;
+      const res = await axiosInstance.post("/auth/login", data);
+      const authUserData = res.data.user;
       set({
         authUser: {
           id: authUserData._id,
           name: authUserData.name,
           email: authUserData.email,
-          profilePicture: authUserData.profilePicture
+          profilePicture: authUserData.profilePicture,
+          profileComplete: authUserData.profileComplete,
+          bio: authUserData.bio,
+          location: authUserData.location,
+          friends: authUserData.friends
         }
       });
+      console.log("login suc", authUserData)
       toast.success("Login successfully!");
     } catch (error) {
       console.log("useAuthStore login error", error);
@@ -81,20 +92,46 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
   logout: async () => {
     try {
-      await axiosFetcher.post("/auth/logout")
+      await axiosInstance.post("/auth/logout")
       set({ authUser: null })
       toast.success("Logout Successfull!")
     } catch {
       toast.success("Something went wrong!")
     }
+  },
+  updateProfile: async (data: ProfileUpdatePayload) => {
+    set({ isSavingProfileLoading: true });
+    try {
+      const userId = useAuthStore.getState().authUser?.id;
+      const payload = { ...data, id: userId };
+      const res = await axiosInstance.put("/auth/profileUpdate", payload);
+      const authUserData = res.data;
+      set({
+        authUser: {
+          id: authUserData._id,
+          name: authUserData.name,
+          email: authUserData.email,
+          profilePicture: authUserData.profilePicture,
+          profileComplete: authUserData.profileComplete,
+          bio: authUserData.bio,
+          location: authUserData.location,
+          friends: authUserData.friends
+        }
+      });
+      toast.success("Account updated successfully!");
+    } catch (error) {
+      console.log("error in updateProfile", error)
+    } finally {
+      set({ isSavingProfileLoading: false });
+    }
   }
 }));
 
-export const userStore = create<UsersStore>((set) => ({
-  friendList: [],
+export const useUserStore = create<UsersStore>((set) => ({
+  allUsers: [],
   getAllUsers: async () => {
     try {
-      const res = await axiosFetcher.get("/message/users");
+      const res = await axiosInstance.get("/users/all-friends");
       const friendListData = res.data;
       const mappedFriendList = friendListData.map((user: BackendUser) => ({
         id: user._id,
@@ -104,7 +141,7 @@ export const userStore = create<UsersStore>((set) => ({
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       }));
-      set({ friendList: mappedFriendList });
+      set({ allUsers: mappedFriendList });
       console.log("friendlist", mappedFriendList)
     } catch (error) {
       console.log("get all users error", error)
@@ -112,3 +149,12 @@ export const userStore = create<UsersStore>((set) => ({
     }
   }
 }));
+
+
+export const useThemeStore = create<ThemeStore>((set) => ({
+  theme: localStorage.getItem(THEME_KEY) || "dark",
+  setTheme: (theme: string) => {
+    localStorage.setItem(THEME_KEY, theme);
+    set({ theme });
+  }
+}))
