@@ -92,7 +92,7 @@ const acceptFriendRequest = async (req, res) => {
   }
 }
 
-const getAllFriendRequest = async (req, res) => {
+const getAllFriendRequests = async (req, res) => {
   try {
     const loggedInUserId = req.authencatedData.user._id;
     const allFriendRequests = await FriendRequest.find({ recipient: loggedInUserId, status: "pending" }).populate("sender",
@@ -118,11 +118,11 @@ const getAllFriendRequest = async (req, res) => {
     }).populate("recipient", "bio location name profilePicture");
     res.status(200).json({ allFriendRequests, acceptedFriendRequests, acceptedSentRequests, outgoingSentFriendRequests});
   } catch (err) {
-    console.log("error in getAllFriendRequest", err.message);
+    console.log("error in getAllFriendRequests", err.message);
     res.status(400).json({ message: "Internal server error" });
   }
 }
 
 
 
-export { getAllUsers, getMyFriendList, sendFriendRequest, acceptFriendRequest, getAllFriendRequest };
+export { getAllUsers, getMyFriendList, sendFriendRequest, acceptFriendRequest, getAllFriendRequests };

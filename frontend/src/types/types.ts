@@ -20,7 +20,13 @@ export interface AuthStore {
 
 export interface UsersStore {
   allUsers: Array<User>;
+  friends: [];
+  friendRequestData: null,
+  getFriends: () => Promise<void>;
   getAllUsers: () => Promise<void>;
+  getAllFriendRequests: () => Promise<void>;
+  sendFriendRequest: (id: string) => Promise<void>;
+  acceptFriendRequest: (id: string) => Promise<void>;
 };
 
 export interface ThemeStore {

@@ -127,8 +127,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
   }
 }));
 
-export const useUserStore = create<UsersStore>((set) => ({
+export const useUserStore = create<UsersStore>((set, get) => ({
   allUsers: [],
+  friends: [],
+  friendRequestData: null,
+  sentFriendRequest: null,
+  acceptedFriendRequest: null,
   getAllUsers: async () => {
     try {
       const res = await axiosInstance.get("/users/all-friends");
@@ -147,9 +151,43 @@ export const useUserStore = create<UsersStore>((set) => ({
       console.log("get all users error", error)
       toast.success("Something went wrong!")
     }
+  },
+  getFriends: async () => {
+    try {
+      const res = await axiosInstance.get("/users/friends");
+      set({ friends: res.data })
+    } catch (error) {
+      console.log("error in getFriends", error)
+    }
+  },
+  getAllFriendRequests: async () => {
+    try {
+      const res = await axiosInstance.put("/users/all-friend-requests");
+      console.log("all-friend-requests", res);
+      set({ friendRequestData: res.data });
+    } catch (error) {
+      console.log("error in upDateAllFriendRequest", error);
+    }
+  },
+  sendFriendRequest: async (friendUserId) => {
+    try {
+      const res = await axiosInstance.post(`/users/friend-request/${friendUserId}`)
+      console.log("all-friend-requests", res.data);
+    } catch (error) {
+      console.log("error in sendFriendRequest", error);
+    } finally {
+      await get().getAllFriendRequests();
+    }
+  },
+  acceptFriendRequest: async (friendUserId) => {
+    try {
+      const res = await axiosInstance.put(`/users/friend-request/${friendUserId}/accept`)
+      console.log("all-friend-requests", res.data);
+    } catch (error) {
+      console.log("error in sendFriendRequest", error);
+    }
   }
 }));
-
 
 export const useThemeStore = create<ThemeStore>((set) => ({
   theme: localStorage.getItem(THEME_KEY) || "dark",
