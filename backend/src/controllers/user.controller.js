@@ -22,7 +22,7 @@ const getMyFriendList = async (req, res) => {
   try {
     const loggedInUserId = req.authencatedData.user._id;
     const user = await UserModel.findById(loggedInUserId).select("friends").populate("friends",
-      "name profilePicture"
+      "name profilePicture bio"
     );
     res.status(200).json(user.friends);
   } catch (err) {
@@ -36,7 +36,7 @@ const sendFriendRequest = async (req, res) => {
     const loggedInUserId = req.authencatedData.user._id;
     const { id: recipientId } = req.params;
 
-    if (recipientId === loggedInUserId) return res.status(400).json({ message: "You can't sent message to yourself" });
+    if (recipientId === loggedInUserId) return res.status(400).json({ message: "You can't sent friend request to yourself" });
     const recipient = await UserModel.findById(recipientId);
     if (!recipient) return res.status(404).json({ message: "Recipient not found" });
     // friends -> [ userId ]
@@ -51,7 +51,7 @@ const sendFriendRequest = async (req, res) => {
     });
     if (existingFriendRequest) return res.status(400).json({ message: "Friend request already been sent between you and this user" });
 
-    const friendRequest = FriendRequest.create({
+    const friendRequest = await FriendRequest.create({
       sender: loggedInUserId,
       recipient: recipientId
     });
@@ -65,11 +65,13 @@ const sendFriendRequest = async (req, res) => {
 const acceptFriendRequest = async (req, res) => {
   try {
     const loggedInUserId = req.authencatedData.user._id;
-    const { id: friendRequestSenderId } = req.params;
+    const { id: friendRequestDocumentId } = req.params;
+    console.log('BE: acceptFriendRequest', loggedInUserId, friendRequestDocumentId)
 
-    const friendRequest = await FriendRequest.findById(friendRequestSenderId);
-    if (!friendRequest) res.status(404).json({ message: "Friend request not found" });
-    if (friendRequest.recipient.toString() !== loggedInUserId) res.status(403).json({ message: "You are not authorized to accept this request" });
+    const friendRequest = await FriendRequest.findById(friendRequestDocumentId);
+    console.log('BE: friendRequest', friendRequest)
+    if (!friendRequest) return res.status(404).json({ message: "Friend request not found" });
+    if (friendRequest.recipient._id.toString() !== loggedInUserId.toString()) return res.status(403).json({ message: `You are not authorized to accept this request ${friendRequest}` });
 
     friendRequest.status = "accepted";
     await friendRequest.save();
@@ -85,7 +87,7 @@ const acceptFriendRequest = async (req, res) => {
     await UserModel.findByIdAndUpdate(friendRequest.sender, {
       $addToSet: { friends: friendRequest.recipient }
     });
-    res.status(200).json({ mmesage: "Friend request accepted" });
+    res.status(200).json({ mmesage: "Friend request accepted", friendRequest});
   } catch (err) {
     console.log("error in acceptFriendRequest", err.message);
     res.status(400).json({ message: "Internal server error" });
@@ -95,6 +97,7 @@ const acceptFriendRequest = async (req, res) => {
 const getAllFriendRequests = async (req, res) => {
   try {
     const loggedInUserId = req.authencatedData.user._id;
+    console.log('loggedInUserId getAllFriendRequests', loggedInUserId)
     const allFriendRequests = await FriendRequest.find({ recipient: loggedInUserId, status: "pending" }).populate("sender",
       "bio location name profilePicture"
     );

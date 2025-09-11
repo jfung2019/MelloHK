@@ -1,36 +1,21 @@
 import { create } from "zustand";
 import axiosInstance from "../services/axios";
 import toast from "react-hot-toast";
-import type { AuthStore, BackendUser, loginPayload, ProfileUpdatePayload, SignUpPayload, ThemeStore, UsersStore } from "../types/types";
+import type { AuthStore, Friend, BackendUser, loginPayload, ProfileUpdatePayload, SignUpPayload, ThemeStore, UsersStore } from "../types/types";
 
 const THEME_KEY = "saved-theme";
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   authUser: null,
   isCheckingAuth: true,
   isSigningUp: false,
   isLoggingIn: false,
-  isUpdatingProfile: false,
   isSavingProfileLoading: false,
   checkAuthentication: async () => {
     console.log("checking Authentication...");
     try {
       const res = await axiosInstance.get("/auth/check");
-      const authUserData = res.data;
-      set({
-        authUser: {
-          id: authUserData._id,
-          name: authUserData.name,
-          email: authUserData.email,
-          profilePicture: authUserData.profilePicture,
-          profileComplete: authUserData.profileComplete,
-          bio: authUserData.bio,
-          location: authUserData.location,
-          friends: authUserData.friends,
-          createdAt: authUserData.createdAt,
-          updatedAt: authUserData.updatedAt,
-        }
-      });
+      set({ authUser: res.data });
     } catch (error) {
       set({ authUser: null });
       console.log("useAuthStore checkAuthentication error 1", error);
@@ -43,48 +28,25 @@ export const useAuthStore = create<AuthStore>((set) => ({
     try {
       const res = await axiosInstance.post("/auth/signup", data);
       const authUserData = res.data.user;
-      set({
-        authUser: {
-          id: authUserData._id,
-          name: authUserData.name,
-          email: authUserData.email,
-          profilePicture: authUserData.profilePicture,
-          profileComplete: authUserData.profileComplete,
-          bio: authUserData.bio,
-          location: authUserData.location,
-          friends: authUserData.friends
-        }
-      });
+      set({ authUser: authUserData });
       console.log("useAuthStore signUp authUserData", authUserData);
       toast.success("Account created successfully!");
     } catch (error) {
       console.log("useAuthStore signUp error", error);
-      // set({authUser: null })
     } finally {
       set({ isSigningUp: false });
     }
   },
   login: async (data: loginPayload) => {
-    // set({ authUser: null })
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/auth/login", data);
       const authUserData = res.data.user;
-      set({
-        authUser: {
-          id: authUserData._id,
-          name: authUserData.name,
-          email: authUserData.email,
-          profilePicture: authUserData.profilePicture,
-          profileComplete: authUserData.profileComplete,
-          bio: authUserData.bio,
-          location: authUserData.location,
-          friends: authUserData.friends
-        }
-      });
+      set({ authUser: authUserData });
       console.log("login suc", authUserData)
       toast.success("Login successfully!");
     } catch (error) {
+      toast.error(error.response.data.message);
       console.log("useAuthStore login error", error);
     } finally {
       set({ isLoggingIn: false });
@@ -93,7 +55,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout")
-      set({ authUser: null })
+      set({ authUser: null, })
+      useUserStore.getState().clearUserData();
       toast.success("Logout Successfull!")
     } catch {
       toast.success("Something went wrong!")
@@ -102,22 +65,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
   updateProfile: async (data: ProfileUpdatePayload) => {
     set({ isSavingProfileLoading: true });
     try {
-      const userId = useAuthStore.getState().authUser?.id;
+      const userId = get().authUser?._id;
       const payload = { ...data, id: userId };
       const res = await axiosInstance.put("/auth/profileUpdate", payload);
-      const authUserData = res.data;
-      set({
-        authUser: {
-          id: authUserData._id,
-          name: authUserData.name,
-          email: authUserData.email,
-          profilePicture: authUserData.profilePicture,
-          profileComplete: authUserData.profileComplete,
-          bio: authUserData.bio,
-          location: authUserData.location,
-          friends: authUserData.friends
-        }
-      });
+      set({ authUser: res.data });
       toast.success("Account updated successfully!");
     } catch (error) {
       console.log("error in updateProfile", error)
@@ -133,59 +84,72 @@ export const useUserStore = create<UsersStore>((set, get) => ({
   friendRequestData: null,
   sentFriendRequest: null,
   acceptedFriendRequest: null,
+  friendRequestDataLoading: false,
+  isFriendListLoading: false,
   getAllUsers: async () => {
     try {
       const res = await axiosInstance.get("/users/all-friends");
-      const friendListData = res.data;
-      const mappedFriendList = friendListData.map((user: BackendUser) => ({
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        profilePicture: user.profilePicture,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      }));
-      set({ allUsers: mappedFriendList });
-      console.log("friendlist", mappedFriendList)
+      set({ allUsers: res.data });
+      console.log("allUsers", res.data)
     } catch (error) {
       console.log("get all users error", error)
       toast.success("Something went wrong!")
     }
   },
   getFriends: async () => {
+    set({ isFriendListLoading: true });
     try {
       const res = await axiosInstance.get("/users/friends");
-      set({ friends: res.data })
+      set({ friends: res.data });
     } catch (error) {
       console.log("error in getFriends", error)
+    } finally {
+      set({ isFriendListLoading: false });
     }
   },
   getAllFriendRequests: async () => {
+    set({ friendRequestDataLoading: true })
     try {
-      const res = await axiosInstance.put("/users/all-friend-requests");
-      console.log("all-friend-requests", res);
+      const res = await axiosInstance.get("/users/all-friend-requests");
+      console.log("friendRequestData", res.data);
       set({ friendRequestData: res.data });
     } catch (error) {
       console.log("error in upDateAllFriendRequest", error);
+    } finally {
+      set({ friendRequestDataLoading: false })
     }
   },
   sendFriendRequest: async (friendUserId) => {
     try {
+      console.log("friendUserId", friendUserId);
       const res = await axiosInstance.post(`/users/friend-request/${friendUserId}`)
-      console.log("all-friend-requests", res.data);
+      console.log("sendFriendRequest", res.data);
     } catch (error) {
       console.log("error in sendFriendRequest", error);
+      toast.error(error.response.data.message);
     } finally {
       await get().getAllFriendRequests();
     }
   },
   acceptFriendRequest: async (friendUserId) => {
     try {
+      console.log("acceptFriendRequest friendUserId", friendUserId);
       const res = await axiosInstance.put(`/users/friend-request/${friendUserId}/accept`)
-      console.log("all-friend-requests", res.data);
+      console.log("acceptFriendRequest", res.data);
     } catch (error) {
       console.log("error in sendFriendRequest", error);
+    } finally {
+      // todo: maybe just update the local state instead of calling the api
+      await get().getAllFriendRequests();
+      await get().getFriends();
     }
+  },
+  clearUserData: () => {
+    set({
+      allUsers: [],
+      friends: [],
+      friendRequestData: null
+    })
   }
 }));
 

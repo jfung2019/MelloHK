@@ -17,7 +17,7 @@ export const protectRoute = async (req, res, next)=> {
     if (!user) return res.status(404).json({ message: "User not found!" });
     // now that we have the user data, add custom property 'user' to req so we can use it
     req.authencatedData = { user: user };
-    console.log('protected route', req.authencatedData);
+    // console.log('protected route', req.authencatedData);
 
     // other function will run after this
     // router.put('/profileUpdate', protectRoute, profileUpdate);

@@ -9,7 +9,6 @@ export interface AuthStore {
   isCheckingAuth: boolean;
   isSigningUp: boolean;
   isLoggingIn: boolean;
-  isUpdatingProfile: boolean;
   isSavingProfileLoading: boolean;
   checkAuthentication: () => Promise<void>;
   signUp: (userData: SignUpPayload) => Promise<void>;
@@ -19,14 +18,17 @@ export interface AuthStore {
 }
 
 export interface UsersStore {
-  allUsers: Array<User>;
-  friends: [];
-  friendRequestData: null,
+  allUsers: User[];
+  friends: Friend[];
+  friendRequestData: FriendRequestData | null,
+  friendRequestDataLoading: boolean,
+  isFriendListLoading: boolean,
   getFriends: () => Promise<void>;
   getAllUsers: () => Promise<void>;
   getAllFriendRequests: () => Promise<void>;
   sendFriendRequest: (id: string) => Promise<void>;
   acceptFriendRequest: (id: string) => Promise<void>;
+  clearUserData: () => void;
 };
 
 export interface ThemeStore {
@@ -34,15 +36,39 @@ export interface ThemeStore {
   setTheme: (data: string) => void;
 }
 
+type FriendRequest = {
+  _id: string;
+  sender: { 
+    profilePicture: string;
+    bio: string;
+    name: string;
+  },
+}
+
+type OutgoingFriendRequest = {
+  _id: string;
+  recipient: {
+    _id: string;
+    name: string;
+  };
+}
+
+type FriendRequestData = {
+  allFriendRequests: FriendRequest[];
+  acceptedFriendRequests: [];
+  acceptedSentRequests: [];
+  outgoingSentFriendRequests: OutgoingFriendRequest[];
+}
+
 export type User = {
-  id: string;
-  email: string;
+  _id: string;
   name: string;
   profilePicture: string;
-  profileComplete: boolean;
   bio: string,
-  location: string,
-  friends: Array<User>
+  email?: string;
+  location?: string,
+  friends?: Array<User>
+  profileComplete?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -54,13 +80,11 @@ export type ProfileUpdatePayload = {
   profilePicture: string;
 }
 
-export type BackendUser = {
+export type Friend = {
   _id: string;
-  email: string;
   name: string;
+  bio: string;
   profilePicture: string;
-  createdAt: string;
-  updatedAt: string;
 };
 
 export type SignUpPayload = loginPayload & {

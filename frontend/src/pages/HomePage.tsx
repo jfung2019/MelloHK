@@ -1,30 +1,44 @@
 import { useEffect } from "react";
-import { useAuthStore, useUserStore } from "../store/store";
+import { useUserStore } from "../store/store";
 import { CameraIcon } from "lucide-react";
 
 function HomePage() {
-  const { allUsers, friends, getAllUsers, getFriends } = useUserStore();
-  const { authUser } = useAuthStore();
+  const { allUsers, friends, getAllUsers, sendFriendRequest, getAllFriendRequests, friendRequestData, isFriendListLoading, getFriends } = useUserStore();
 
   useEffect(() => {
     getAllUsers();
-    getFriends(); 
-  }, [getAllUsers, getFriends]);
-  console.log('friendsfriends', friends)
+    getFriends();
+    getAllFriendRequests();
+  }, [getAllUsers, getFriends, getAllFriendRequests]);
+  console.log('friendsfriends,', friends)
 
   return (
     <div className="w-full p-8">
       <h1 className="text-2xl font-bold mb-6">Friends</h1>
-      <div className="flex flex-row gap-6 mb-8 flex-wrap">
-        {authUser && friends && friends.length > 0 ? (
-          authUser.friends.map(friend => (
-            <div key={friend.id} className="card bg-base-200 shadow-md p-4 flex flex-col items-center w-48 hover:scale-105 transition-transform">
-              <div className={`avatar ${friend.online ? "avatar-online" : "avatar-offline"} mb-2`}>
-                <div className="w-16 rounded-full">
-                  <img src={friend.profilePicture || 'https://img.daisyui.com/images/profile/demo/gordon@192.webp'} alt={friend.name} />
+      {/* Friend card */}
+      {/* picture name in 1 row */}
+      {/* bio in 1 row */}
+      {/* button in 1 row to message friend */}
+      <div className="grid grid-cols-3 gap-6 mb-8 flex-wrap">
+        {!isFriendListLoading && friends.length > 0 ? (
+          friends.map(friend => (
+            <div key={friend._id} className="w-full bg-base-200 shadow-md rounded-2xl p-4 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-4">
+                {/* ${friend.online ? "avatar-online" : "avatar-offline"} */}
+                <div className={`avatar mb-2`}>
+                  <div className="w-16 rounded-full">
+                    <img src={friend.profilePicture || 'https://img.daisyui.com/images/profile/demo/gordon@192.webp'} alt={friend.name} />
+                  </div>
                 </div>
+                <h1 className="font-semibold text-center">{friend.name}</h1>
               </div>
-              <div className="font-semibold text-center">{friend.name}</div>
+                <h1 className="font-semibold w-full bg-base-300 rounded-2xl p-2">{friend.bio}</h1>
+              <button
+                className="btn btn-sm btn-primary mt-3 w-full"
+                onClick={() => { }}
+              >
+                Message
+              </button>
             </div>
           ))
         ) : (
@@ -35,7 +49,7 @@ function HomePage() {
       <h2 className="text-xl font-semibold mb-4">Meet New People</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {allUsers.map(user => (
-          <div key={user.id} className="card bg-base-200 shadow p-4 flex flex-wrap items-center hover:scale-105 transition-transform">
+          <div key={user._id} className="card bg-base-200 shadow p-4 flex flex-wrap items-center hover:scale-105 transition-transform">
             {user.profilePicture
               ?
               <div className={`avatar mb-2`}>
@@ -52,17 +66,20 @@ function HomePage() {
             <div className="text-xs text-base-content/70 text-center">{user.email}</div>
             {/* Online status indicator */}
             <div className="flex items-center gap-2 mt-2">
-              <span className={`inline-block w-2 h-2 rounded-full ${user.online ? 'bg-success' : 'bg-base-content/30'}`}></span>
-              <span className="text-xs text-base-content/60">{user.online ? 'Online' : 'Offline'}</span>
+              {/* ${user.online ? 'bg-success' : 'bg-base-content/30'} */}
+              <span className={`inline-block w-2 h-2 rounded-full`}></span>
+              {/* {user.online ? 'Online' : 'Offline'} */}
+              <span className="text-xs text-base-content/60">Online</span>
             </div>
             {/* Add Friend button */}
             <button
               className="btn btn-sm btn-primary mt-3"
-              onClick={() => {/* TODO: implement add friend logic */ }}
-              disabled={!!authUser && authUser.friends.some(friend => friend.id === user.id)}
+              onClick={() => { sendFriendRequest(user._id) }}
+              disabled={!!friendRequestData?.outgoingSentFriendRequests?.some(req => req.recipient._id === user._id)}
             >
-              {!!authUser && authUser.friends.some(f => f.id === user.id)
-                ? 'Friend' : 'Add Friend'}
+              {friendRequestData?.outgoingSentFriendRequests?.some(req => req.recipient._id === user._id)
+                ? 'Pending'
+                : 'Add Friend'}
             </button>
           </div>
         ))}

@@ -50,7 +50,7 @@ function App() {
             }
           />
           <Route path="/chat" element={authUser ? <ChatPage /> : <Navigate to="/login" />} />
-          <Route path="/notifications" element={authUser ? <NotificationPage /> : <Navigate to="/login" />} />
+          <Route path="/notifications" element={authUser ? <NotificationPage /> : <Navigate to="/login" />} />                                                                                                                                                                                                                                                                                                    
           <Route path="/setting" element={<SettingPage />} />
         </Routes>
         <Toaster />
