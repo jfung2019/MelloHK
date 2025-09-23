@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axiosInstance from "../services/axios";
 import toast from "react-hot-toast";
-import type { AuthStore, Friend, BackendUser, loginPayload, ProfileUpdatePayload, SignUpPayload, ThemeStore, UsersStore } from "../types/types";
+import type { AuthStore, loginPayload, ProfileUpdatePayload, SignUpPayload, ThemeStore, UsersStore } from "../types/types";
 
 const THEME_KEY = "saved-theme";
 
@@ -84,6 +84,7 @@ export const useUserStore = create<UsersStore>((set, get) => ({
   friendRequestData: null,
   sentFriendRequest: null,
   acceptedFriendRequest: null,
+  streamToken: '',
   friendRequestDataLoading: false,
   isFriendListLoading: false,
   getAllUsers: async () => {
@@ -142,6 +143,19 @@ export const useUserStore = create<UsersStore>((set, get) => ({
       // todo: maybe just update the local state instead of calling the api
       await get().getAllFriendRequests();
       await get().getFriends();
+    }
+  },
+  messageFriend: async (friendId: string) => {
+    console.log('messageFriend', friendId)
+  },
+  getStreamToken: async () => {
+    try {
+      const res = await axiosInstance.get("/chat/token");
+      set({ streamToken: res.data })
+      console.log("getStreamToken", res.data);
+      return res.data;
+    } catch (error) {
+      console.log("error in sendFriendRequest", error);
     }
   },
   clearUserData: () => {

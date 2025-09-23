@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useUserStore } from "../store/store";
 import { CameraIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 
 function HomePage() {
   const { allUsers, friends, getAllUsers, sendFriendRequest, getAllFriendRequests, friendRequestData, isFriendListLoading, getFriends } = useUserStore();
@@ -33,12 +34,7 @@ function HomePage() {
                 <h1 className="font-semibold text-center">{friend.name}</h1>
               </div>
                 <h1 className="font-semibold w-full bg-base-300 rounded-2xl p-2">{friend.bio}</h1>
-              <button
-                className="btn btn-sm btn-primary mt-3 w-full"
-                onClick={() => { }}
-              >
-                Message
-              </button>
+               <Link className="btn btn-sm btn-primary mt-3 w-full" to={`/chat/${friend._id}`}>Message</Link>
             </div>
           ))
         ) : (

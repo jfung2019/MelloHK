@@ -21,6 +21,7 @@ export interface UsersStore {
   allUsers: User[];
   friends: Friend[];
   friendRequestData: FriendRequestData | null,
+  streamToken: string;
   friendRequestDataLoading: boolean,
   isFriendListLoading: boolean,
   getFriends: () => Promise<void>;
@@ -28,6 +29,8 @@ export interface UsersStore {
   getAllFriendRequests: () => Promise<void>;
   sendFriendRequest: (id: string) => Promise<void>;
   acceptFriendRequest: (id: string) => Promise<void>;
+  messageFriend: (id: string) => Promise<void>;
+  getStreamToken: () => Promise<void>;
   clearUserData: () => void;
 };
 

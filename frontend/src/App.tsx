@@ -31,26 +31,39 @@ function App() {
         <NavBar />
         <Routes>
           <Route path="/" element={
-            authUser
-              ? (authUser.profileComplete ?
-                <MainLayout>
-                  <HomePage />
-                </MainLayout>
-                : <Navigate to="/profileCompletion" />)
-              : <Navigate to="/login" />
+            authUser && authUser.profileComplete
+              ?
+              <MainLayout>
+                <HomePage />
+              </MainLayout>
+              : <Navigate to={!authUser ? "/login" : "/profileCompletion"} />
           } />
           <Route path="/signup" element={authUser ? <Navigate to={authUser.profileComplete ? "/" : "/profileCompletion"} /> : <SignUpPage />} />
           <Route path="/login" element={authUser ? <Navigate to={authUser.profileComplete ? "/" : "/profileCompletion"} /> : <LoginPage />} />
           <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
-          <Route
-            path="/profileCompletion" element={
-              authUser
-                ? (authUser.profileComplete ? <Navigate to="/" /> : <ProfileCompletionPage />)
-                : <Navigate to="/login" />
-            }
+          <Route path="/profileCompletion" element={
+            authUser && !authUser.profileComplete
+              ?
+              <ProfileCompletionPage />
+              : <Navigate to="/login" />
+          }
           />
-          <Route path="/chat" element={authUser ? <ChatPage /> : <Navigate to="/login" />} />
-          <Route path="/notifications" element={authUser ? <NotificationPage /> : <Navigate to="/login" />} />                                                                                                                                                                                                                                                                                                    
+          <Route path="/chat/:id" element={
+            authUser && authUser.profileComplete
+              ?
+              <MainLayout>
+                <ChatPage />
+              </MainLayout>
+              : <Navigate to={!authUser ? "/login" : "/profileCompletion"} />
+          } />
+          <Route path="/notifications" element={
+            authUser && authUser.profileComplete
+              ?
+              <MainLayout>
+                <NotificationPage />
+              </MainLayout>
+              : <Navigate to={!authUser ? "/login" : "/profileCompletion"} />
+          } />
           <Route path="/setting" element={<SettingPage />} />
         </Routes>
         <Toaster />

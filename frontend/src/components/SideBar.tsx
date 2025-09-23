@@ -8,70 +8,67 @@ function SideBar() {
   const [imgLoading, setImgLoading] = useState<boolean>(true);
   const [imgError, setImgError] = useState<boolean>(false);
   const location = useLocation();
-  const currentPath = location.pathname;
+  const currentLocation = location.pathname;
+
+  const navItems = [
+    { to: "/", icon: <HomeIcon className="size-5" />, label: "Home" },
+    { to: "/friends", icon: <UsersIcon className="size-5" />, label: "Friends" },
+    { to: "/notifications", icon: <BellIcon className="size-5" />, label: "Notifications" }
+  ];
 
   return (
-    <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col min-h-[calc(100vh-4rem)] sticky top-0">
-      <nav className="flex-1 p-4 space-y-1">
-        <Link
-          to="/"
-          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/" ? "btn-active" : ""
-            }`}>
-          <HomeIcon className="size-5 text-primary opacity-70" />
-          <span>Home</span>
-        </Link>
-
-        <Link
-          to="/friends"
-          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/friends" ? "btn-active" : ""
-            }`}>
-          <UsersIcon className="size-5 text-primary opacity-70" />
-          <span>Friends</span>
-        </Link>
-
-        <Link
-          to="/notifications"
-          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/notifications" ? "btn-active" : ""
-            }`}>
-          <BellIcon className="size-5 text-primary opacity-70" />
-          <span>Notifications</span>
-        </Link>
+    <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col min-h-[calc(100vh-4rem)] sticky top-0 transition-all duration-300 hover:shadow-xl">
+      <nav className="flex-1 p-4 space-y-2">
+        {navItems.map(({ to, icon, label }) => (
+          <Link
+            key={to}
+            to={to}
+            className={`btn btn-ghost justify-start w-full gap-3 px-4 normal-case transition-all duration-200 hover:translate-x-1 ${
+              currentLocation === to 
+                ? "btn-active bg-base-300 text-primary-content" 
+                : "hover:bg-base-300"
+            }`}
+          >
+            <span className="text-primary opacity-70">{icon}</span>
+            <span>{label}</span>
+          </Link>
+        ))}
       </nav>
 
-      {/* USER PROFILE SECTION */}
-      <div className="p-4 border-t border-base-300 mt-auto">
-        <div className="flex items-center gap-3">
-          {authUser?.profilePicture && !imgError ?
-            <div className="avatar">
-              <div className="w-10 rounded-full">
-                {imgLoading && (
-                  <LoaderCircle className="absolute animate-spin text-primary w-10 h-10" />
-                )}
+      {/* User Profile Section */}
+      <div className="p-4 border-t border-base-300 mt-auto bg-base-300/50 backdrop-blur-sm">
+        <div className="flex items-center gap-3 group cursor-pointer hover:bg-base-300 p-2 rounded-lg transition-all duration-200">
+          <div className="avatar">
+            <div className="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+              {imgLoading && (
+                <LoaderCircle className="absolute animate-spin text-primary w-10 h-10" />
+              )}
+              {authUser?.profilePicture && !imgError ? (
                 <img
-                  src={authUser?.profilePicture}
+                  src={authUser.profilePicture}
                   alt="Profile"
-                  className={`rounded-full w-24 h-24 object-cover transition-opacity duration-300 ${imgLoading ? "opacity-0" : "opacity-100"}`}
+                  className={`rounded-full object-cover transition-all duration-300 ${
+                    imgLoading ? "opacity-0" : "opacity-100"
+                  }`}
                   onLoad={() => setImgLoading(false)}
                   onError={() => {
                     setImgError(true);
                     setImgLoading(false);
                   }}
                 />
-              </div>
-            </div> :
-            <div className="relative size-10 flex items-center justify-center">
-              <CameraIcon className="size-10" />
+              ) : (
+                <div className="relative size-10 flex items-center justify-center bg-base-300">
+                  <CameraIcon className="size-6 text-primary" />
+                </div>
+              )}
             </div>
-          }
-          <div className="flex-1">
-            <div className="flex items-center gap-0.5">
-              <p className="font-semibold text-sm">{authUser?.name} - </p>
-              <p className="text-sm italic font-light text-base-content/70">
-                {authUser?.email}
-              </p>
-            </div>
+          </div>
+          <div className="flex-1 transition-all duration-200">
+            <p className="font-semibold text-sm group-hover:text-primary">
+              {authUser?.name}
+            </p>
             <p className="text-xs text-success flex items-center gap-1">
-              <span className="size-2 rounded-full bg-success inline-block" />
+              <span className="size-2 rounded-full bg-success animate-pulse" />
               Online
             </p>
           </div>
