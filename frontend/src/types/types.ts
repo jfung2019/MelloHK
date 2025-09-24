@@ -29,7 +29,6 @@ export interface UsersStore {
   getAllFriendRequests: () => Promise<void>;
   sendFriendRequest: (id: string) => Promise<void>;
   acceptFriendRequest: (id: string) => Promise<void>;
-  messageFriend: (id: string) => Promise<void>;
   getStreamToken: () => Promise<void>;
   clearUserData: () => void;
 };

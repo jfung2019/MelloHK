@@ -145,15 +145,10 @@ export const useUserStore = create<UsersStore>((set, get) => ({
       await get().getFriends();
     }
   },
-  messageFriend: async (friendId: string) => {
-    console.log('messageFriend', friendId)
-  },
   getStreamToken: async () => {
     try {
       const res = await axiosInstance.get("/chat/token");
       set({ streamToken: res.data })
-      console.log("getStreamToken", res.data);
-      return res.data;
     } catch (error) {
       console.log("error in sendFriendRequest", error);
     }

@@ -161,3 +161,22 @@ export const THEMES = [
     colors: ["#1e293b", "#f5734c", "#ec4899", "#ffffff"],
   },
 ];
+
+export const DARK_THEME_NAMES = [
+  'dark',
+  'forest',
+  'synthwave',
+  'halloween',
+  'aqua',
+  'black',
+  'luxury',
+  'dracula',
+  'business',
+  'night',
+  'coffee',
+  'dim',
+  'sunset',
+  'lofi'
+];
+
+export const isDarkTheme = (theme: string): boolean => DARK_THEME_NAMES.includes(theme);

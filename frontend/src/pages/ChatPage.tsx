@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useAuthStore, useUserStore } from "../store/store";
+import { useAuthStore, useThemeStore, useUserStore } from "../store/store";
 import { useEffect, useState } from "react";
 import {
   Channel,
@@ -7,20 +7,22 @@ import {
   Chat,
   MessageInput,
   MessageList,
-  Thread,
-  Window,
+  Window
 } from "stream-chat-react";
 import { StreamChat, Channel as StreamChannel } from "stream-chat";
+import { isDarkTheme } from "../constants/themes";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 function ChatPage() {
+  const { theme } = useThemeStore();
   const { authUser } = useAuthStore();
   const { streamToken, getStreamToken } = useUserStore();
   const { id: targetUserId } = useParams();
   const [chatClient, setChatClient] = useState<StreamChat | undefined>();
   const [channel, setChannel] = useState<StreamChannel | undefined>();
   const [loading, setLoading] = useState(true);
+  const isDarkMode = isDarkTheme(theme);
 
   useEffect(() => {
     if (authUser) {
@@ -68,14 +70,16 @@ function ChatPage() {
   }, [getStreamToken, authUser, streamToken, targetUserId, chatClient]);
 
   if (loading || !chatClient || !channel)
-    return <div>Conecting to chat...</div>;
+    return <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-base-100">
+      Connecting to chat...
+    </div>;
 
   return (
     <div>
       {/* <p>chatPage for friend ID: {targetUserId}</p>
       <p>streamToken: {streamToken}</p> */}
       <div className="h-[calc(100vh-4rem)]">
-        <Chat client={chatClient}>
+        <Chat client={chatClient} theme={`str-chat__theme-${isDarkMode ? 'dark' : 'light'}`}>
           <Channel channel={channel}>
             <div className="relative w-full">
               <Window>
@@ -84,7 +88,6 @@ function ChatPage() {
                 <MessageInput focus />
               </Window>
             </div>
-            <Thread />
           </Channel>
         </Chat>
       </div>
