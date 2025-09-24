@@ -33,11 +33,14 @@ function ChatPage() {
   const sort = { last_message_at: -1 } as ChannelSort;
 
   useEffect(() => {
-    // 1. Initialize chat client ONCE and clean up ONLY on unmount
     if (authUser) {
       getStreamToken();
     }
+  }, [authUser, getStreamToken]);
+
+  useEffect(() => {
     if (!streamToken || !authUser) return;
+
     const initChat = async () => {
       try {
         console.log("init stream chat client...");
@@ -45,7 +48,18 @@ function ChatPage() {
           timeout: 5000,
         });
 
+        console.log('client.userID', client.userID);
+        console.log('authUser._id', authUser._id);
+
+        // Check if connected user is different from current user
+        if (client.userID && client.userID !== authUser._id) {
+          console.log('Disconnecting previous user:', client.userID);
+          await client.disconnectUser();
+        }
+
+        // Connect if no user or different user
         if (!client.userID) {
+          console.log('Connecting new user:', authUser._id);
           await client.connectUser(
             {
               id: authUser._id,
@@ -55,6 +69,8 @@ function ChatPage() {
             streamToken
           );
         }
+
+        console.log('client.userID after connect', client.userID);
         setChatClient(client);
       } catch (error) {
         console.log("Error in init stream chat client", error);
@@ -62,16 +78,18 @@ function ChatPage() {
     };
 
     initChat();
+  }, [authUser, streamToken]);
 
-    // Cleanup function
+  // Separate cleanup effect for component unmount only
+  useEffect(() => {
     return () => {
       if (chatClient) {
+        console.log('Component unmounting - disconnecting user');
         chatClient.disconnectUser();
-        setChatClient(undefined);
-        setActiveChannel(undefined);
       }
     };
-  }, [getStreamToken, authUser, streamToken, chatClient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Set active channel when targetUserId changes
   useEffect(() => {
@@ -85,8 +103,6 @@ function ChatPage() {
         await currentChannel.watch();
         setActiveChannel(currentChannel);
         console.log("currentChannel", currentChannel.cid);
-        // messaging:68b358a4f3bdd38f4bdc04d0-68b5dbfb1dd35ebb0c7e528f - test4
-        // messaging:68b5dbfb1dd35ebb0c7e528f-68b9a2d502eedbf4178db6e4 - profile
       } catch (error) {
         console.log("Error in init stream chat client", error);
       } finally {
