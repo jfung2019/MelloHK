@@ -81,17 +81,20 @@ function ChatPage() {
   }, [authUser, streamToken]);
 
   // Separate cleanup effect for component unmount only
+  // This is intentional to only clean up on unmount and exclude chatClient in array dependency
   useEffect(() => {
     return () => {
       if (chatClient) {
         console.log('Component unmounting - disconnecting user');
         chatClient.disconnectUser();
+        setChatClient(undefined);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Set active channel when targetUserId changes
+  // TargetUserId changes when we switch a friend to message with
   useEffect(() => {
     if (!chatClient || !targetUserId || !authUser) return;
     const handleActiveChannel = async () => {
