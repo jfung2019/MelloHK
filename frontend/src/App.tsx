@@ -51,9 +51,7 @@ function App() {
           <Route path="/chat/:id" element={
             authUser && authUser.profileComplete
               ?
-              <MainLayout>
                 <ChatPage />
-              </MainLayout>
               : <Navigate to={!authUser ? "/login" : "/profileCompletion"} />
           } />
           <Route path="/notifications" element={

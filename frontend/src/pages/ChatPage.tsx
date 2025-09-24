@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import {
   Channel,
   ChannelHeader,
+  ChannelList,
   Chat,
   MessageInput,
   MessageList,
   Window
 } from "stream-chat-react";
-import { StreamChat, Channel as StreamChannel } from "stream-chat";
+import { StreamChat, Channel as StreamChannel, type ChannelSort } from "stream-chat";
 import { isDarkTheme } from "../constants/themes";
+import CustomChannelPreview from "../components/CustomChannelPreview";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
@@ -20,43 +22,45 @@ function ChatPage() {
   const { streamToken, getStreamToken } = useUserStore();
   const { id: targetUserId } = useParams();
   const [chatClient, setChatClient] = useState<StreamChat | undefined>();
-  const [channel, setChannel] = useState<StreamChannel | undefined>();
+  const [activeChannel, setActiveChannel] = useState<StreamChannel | undefined>();
   const [loading, setLoading] = useState(true);
+
   const isDarkMode = isDarkTheme(theme);
+  const filters = {
+    type: 'messaging',
+    members: { $in: authUser?._id ? [authUser._id] : [] }
+  };
+  const sort = { last_message_at: -1 } as ChannelSort;
 
   useEffect(() => {
+    // 1. Initialize chat client ONCE and clean up ONLY on unmount
     if (authUser) {
       getStreamToken();
     }
+    if (!streamToken || !authUser) return;
     const initChat = async () => {
-      if (!streamToken || !authUser || !targetUserId) return;
       try {
         console.log("init stream chat client...");
-        const client = StreamChat.getInstance(STREAM_API_KEY);
-
-        await client.connectUser(
-          {
-            id: authUser._id,
-            name: authUser.name,
-            image: authUser.profilePicture,
-          },
-          streamToken
-        );
-
-        const channelId = [authUser._id, targetUserId].sort().join("-");
-        const currentChannel = client.channel("messaging", channelId, {
-          members: [authUser._id, targetUserId],
+        const client = StreamChat.getInstance(STREAM_API_KEY, {
+          timeout: 5000,
         });
 
-        await currentChannel.watch();
+        if (!client.userID) {
+          await client.connectUser(
+            {
+              id: authUser._id,
+              name: authUser.name,
+              image: authUser.profilePicture,
+            },
+            streamToken
+          );
+        }
         setChatClient(client);
-        setChannel(currentChannel);
       } catch (error) {
         console.log("Error in init stream chat client", error);
-      } finally {
-        setLoading(false);
       }
     };
+
     initChat();
 
     // Cleanup function
@@ -64,32 +68,75 @@ function ChatPage() {
       if (chatClient) {
         chatClient.disconnectUser();
         setChatClient(undefined);
-        setChannel(undefined);
+        setActiveChannel(undefined);
       }
     };
-  }, [getStreamToken, authUser, streamToken, targetUserId, chatClient]);
+  }, [getStreamToken, authUser, streamToken, chatClient]);
 
-  if (loading || !chatClient || !channel)
+  // Set active channel when targetUserId changes
+  useEffect(() => {
+    if (!chatClient || !targetUserId || !authUser) return;
+    const handleActiveChannel = async () => {
+      try {
+        const channelId = [authUser._id, targetUserId].sort().join("-");
+        const currentChannel = chatClient.channel("messaging", channelId, {
+          members: [authUser._id, targetUserId],
+        });
+        await currentChannel.watch();
+        setActiveChannel(currentChannel);
+        console.log("currentChannel", currentChannel.cid);
+        // messaging:68b358a4f3bdd38f4bdc04d0-68b5dbfb1dd35ebb0c7e528f - test4
+        // messaging:68b5dbfb1dd35ebb0c7e528f-68b9a2d502eedbf4178db6e4 - profile
+      } catch (error) {
+        console.log("Error in init stream chat client", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    handleActiveChannel();
+  }, [chatClient, targetUserId, authUser]);
+
+  if (loading || !chatClient || !activeChannel)
     return <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-base-100">
       Connecting to chat...
     </div>;
 
   return (
     <div>
-      {/* <p>chatPage for friend ID: {targetUserId}</p>
-      <p>streamToken: {streamToken}</p> */}
-      <div className="h-[calc(100vh-4rem)]">
-        <Chat client={chatClient} theme={`str-chat__theme-${isDarkMode ? 'dark' : 'light'}`}>
-          <Channel channel={channel}>
-            <div className="relative w-full">
-              <Window>
-                <ChannelHeader />
-                <MessageList />
-                <MessageInput focus />
-              </Window>
-            </div>
-          </Channel>
-        </Chat>
+      <div className="h-[calc(100vh-4rem)] flex">
+        {/* Channel List Sidebar */}
+        <div className="w-80 border-r border-base-300">
+          <Chat client={chatClient} theme={`str-chat__theme-${isDarkMode ? 'dark' : 'light'}`}>
+            {authUser?._id && (
+              <ChannelList
+                Preview={(previewProps) => (
+                  <CustomChannelPreview
+                    {...previewProps}
+                    currentActiveChannel={activeChannel}
+                  />
+                )}
+                filters={filters}
+                sort={sort}
+                options={{ state: true, presence: true, limit: 10 }}
+              />
+            )}
+          </Chat>
+        </div>
+
+        {/* Chat Window */}
+        <div className="w-full border-r border-base-300 bg-base-200">
+          <Chat client={chatClient} theme={`str-chat__theme-${isDarkMode ? 'dark' : 'light'}`}>
+            <Channel channel={activeChannel}>
+              <div className="relative w-full">
+                <Window>
+                  <ChannelHeader />
+                  <MessageList />
+                  <MessageInput focus />
+                </Window>
+              </div>
+            </Channel>
+          </Chat>
+        </div>
       </div>
     </div>
   );

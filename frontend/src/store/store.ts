@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axiosInstance from "../services/axios";
 import toast from "react-hot-toast";
 import type { AuthStore, loginPayload, ProfileUpdatePayload, SignUpPayload, ThemeStore, UsersStore } from "../types/types";
+import { AxiosError } from "axios";
 
 const THEME_KEY = "saved-theme";
 
@@ -46,7 +47,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       console.log("login suc", authUserData)
       toast.success("Login successfully!");
     } catch (error) {
-      toast.error(error.response.data.message);
+      if (error instanceof AxiosError) {
+        console.log("error in login", error.response?.data);
+        toast.error(error.response?.data?.message || "Failed to login");
+      }
       console.log("useAuthStore login error", error);
     } finally {
       set({ isLoggingIn: false });
@@ -126,8 +130,10 @@ export const useUserStore = create<UsersStore>((set, get) => ({
       const res = await axiosInstance.post(`/users/friend-request/${friendUserId}`)
       console.log("sendFriendRequest", res.data);
     } catch (error) {
-      console.log("error in sendFriendRequest", error);
-      toast.error(error.response.data.message);
+      if (error instanceof AxiosError) {
+        console.log("error in sendFriendRequest", error.response?.data);
+        toast.error(error.response?.data?.message || "Failed to send friend request");
+      }
     } finally {
       await get().getAllFriendRequests();
     }
