@@ -19,7 +19,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ authUser: res.data });
     } catch (error) {
       set({ authUser: null });
-      console.log("useAuthStore checkAuthentication error 1", error);
+      console.log("Error in checkAuthentication ", error);
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -30,7 +30,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const res = await axiosInstance.post("/auth/signup", data);
       const authUserData = res.data.user;
       set({ authUser: authUserData });
-      console.log("useAuthStore signUp authUserData", authUserData);
       toast.success("Account created successfully!");
     } catch (error) {
       console.log("useAuthStore signUp error", error);
@@ -44,7 +43,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const res = await axiosInstance.post("/auth/login", data);
       const authUserData = res.data.user;
       set({ authUser: authUserData });
-      console.log("login suc", authUserData)
       toast.success("Login successfully!");
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -95,7 +93,6 @@ export const useUserStore = create<UsersStore>((set, get) => ({
     try {
       const res = await axiosInstance.get("/users/all-friends");
       set({ allUsers: res.data });
-      console.log("allUsers", res.data)
     } catch (error) {
       console.log("get all users error", error)
       toast.success("Something went wrong!")
@@ -116,7 +113,6 @@ export const useUserStore = create<UsersStore>((set, get) => ({
     set({ friendRequestDataLoading: true })
     try {
       const res = await axiosInstance.get("/users/all-friend-requests");
-      console.log("friendRequestData", res.data);
       set({ friendRequestData: res.data });
     } catch (error) {
       console.log("error in upDateAllFriendRequest", error);
@@ -140,9 +136,7 @@ export const useUserStore = create<UsersStore>((set, get) => ({
   },
   acceptFriendRequest: async (friendUserId) => {
     try {
-      console.log("acceptFriendRequest friendUserId", friendUserId);
-      const res = await axiosInstance.put(`/users/friend-request/${friendUserId}/accept`)
-      console.log("acceptFriendRequest", res.data);
+      await axiosInstance.put(`/users/friend-request/${friendUserId}/accept`)
     } catch (error) {
       console.log("error in sendFriendRequest", error);
     } finally {

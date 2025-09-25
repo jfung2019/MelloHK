@@ -14,7 +14,6 @@ function ProfileCompletionPage() {
     location: authUser?.location || "",
     profilePicture: authUser?.profilePicture || ""
   });
-  console.log('ProfileCompletionPage init', authUser)
 
   // validate the form input for the required fields
   const validateFormCompletion = (): boolean => {
@@ -39,13 +38,10 @@ function ProfileCompletionPage() {
     return true;
   };
 
-  // handleSubmit
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateFormCompletion() === true) return updateProfile(formData);
   }
-
-  console.log("profile Completion page", authUser);
 
   return (
     <div className="flex flex-col items-center gap-6 mt-8">

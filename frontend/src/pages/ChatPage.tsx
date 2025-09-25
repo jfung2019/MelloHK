@@ -48,18 +48,14 @@ function ChatPage() {
           timeout: 5000,
         });
 
-        console.log('client.userID', client.userID);
-        console.log('authUser._id', authUser._id);
-
         // Check if connected user is different from current user
+        // Case: Relogging to another user 
         if (client.userID && client.userID !== authUser._id) {
-          console.log('Disconnecting previous user:', client.userID);
           await client.disconnectUser();
         }
 
-        // Connect if no user or different user
+        // Connect if no user or different/new user
         if (!client.userID) {
-          console.log('Connecting new user:', authUser._id);
           await client.connectUser(
             {
               id: authUser._id,
@@ -69,8 +65,6 @@ function ChatPage() {
             streamToken
           );
         }
-
-        console.log('client.userID after connect', client.userID);
         setChatClient(client);
       } catch (error) {
         console.log("Error in init stream chat client", error);
@@ -105,7 +99,6 @@ function ChatPage() {
         });
         await currentChannel.watch();
         setActiveChannel(currentChannel);
-        console.log("currentChannel", currentChannel.cid);
       } catch (error) {
         console.log("Error in init stream chat client", error);
       } finally {

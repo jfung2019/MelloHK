@@ -66,10 +66,8 @@ const acceptFriendRequest = async (req, res) => {
   try {
     const loggedInUserId = req.authencatedData.user._id;
     const { id: friendRequestDocumentId } = req.params;
-    console.log('BE: acceptFriendRequest', loggedInUserId, friendRequestDocumentId)
 
     const friendRequest = await FriendRequest.findById(friendRequestDocumentId);
-    console.log('BE: friendRequest', friendRequest)
     if (!friendRequest) return res.status(404).json({ message: "Friend request not found" });
     if (friendRequest.recipient._id.toString() !== loggedInUserId.toString()) return res.status(403).json({ message: `You are not authorized to accept this request ${friendRequest}` });
 
@@ -97,7 +95,6 @@ const acceptFriendRequest = async (req, res) => {
 const getAllFriendRequests = async (req, res) => {
   try {
     const loggedInUserId = req.authencatedData.user._id;
-    console.log('loggedInUserId getAllFriendRequests', loggedInUserId)
     const allFriendRequests = await FriendRequest.find({ recipient: loggedInUserId, status: "pending" }).populate("sender",
       "bio location name profilePicture"
     );

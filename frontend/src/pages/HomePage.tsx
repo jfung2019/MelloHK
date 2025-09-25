@@ -11,7 +11,6 @@ function HomePage() {
     getFriends();
     getAllFriendRequests();
   }, [getAllUsers, getFriends, getAllFriendRequests]);
-  console.log('friendsfriends,', friends)
 
   return (
     <div className="w-full p-8">

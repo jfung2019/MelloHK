@@ -23,7 +23,6 @@ function App() {
   }, [checkAuthentication]);
 
   if (isCheckingAuth && !authUser) return <Loading />;
-  console.log('profileComplete', authUser);
 
   return (
     <div className="flex flex-col min-h-screen" data-theme={theme}>
