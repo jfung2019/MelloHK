@@ -62,6 +62,7 @@ function App() {
               : <Navigate to={!authUser ? "/login" : "/profileCompletion"} />
           } />
           <Route path="/setting" element={<SettingPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toaster />
       </div>

@@ -6,9 +6,11 @@ import chatRoutes from './routes/chat.route.js';
 import { connectDB } from './services/mongoDb.js';
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import path from "path";
 
 dotenv.config();
 const app = express();
+const __dirname = path.resolve();
 
 app.use(express.json()); // allow us to access the req.body to json used in authRoutes variable -> auth.controllers by extracting the data from body
 app.use(cookieParser());
@@ -25,7 +27,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 
+// In Prod: Ensures that all other routes (not matched by the API), then return index.html
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  })
+}
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
   connectDB(MONGO_URI);
+  console.log(`Server running on port ${PORT}`);
 });

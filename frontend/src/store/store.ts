@@ -122,9 +122,7 @@ export const useUserStore = create<UsersStore>((set, get) => ({
   },
   sendFriendRequest: async (friendUserId) => {
     try {
-      console.log("friendUserId", friendUserId);
-      const res = await axiosInstance.post(`/users/friend-request/${friendUserId}`)
-      console.log("sendFriendRequest", res.data);
+      await axiosInstance.post(`/users/friend-request/${friendUserId}`)
     } catch (error) {
       if (error instanceof AxiosError) {
         console.log("error in sendFriendRequest", error.response?.data);
