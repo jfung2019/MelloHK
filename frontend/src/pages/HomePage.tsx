@@ -14,27 +14,30 @@ function HomePage() {
 
   return (
     <div className="w-full p-8">
-      <h1 className="text-2xl font-bold mb-6">Friends</h1>
-      <div className="grid grid-cols-3 gap-6 mb-8 flex-wrap">
-        {!isFriendListLoading && friends.length > 0 ? (
-          friends.map(friend => (
-            <div key={friend._id} className="w-full bg-base-200 shadow-md rounded-2xl p-4 hover:scale-105 transition-transform">
-              <div className="flex items-center gap-4">
-                <div className={`avatar mb-2`}>
-                  <div className="w-16 rounded-full">
-                    <img src={friend.profilePicture || 'https://img.daisyui.com/images/profile/demo/gordon@192.webp'} alt={friend.name} />
-                  </div>
-                </div>
-                <h1 className="font-semibold text-center truncate">{friend.name}</h1>
-              </div>
-              <h1 className="font-semibold w-full bg-base-300 rounded-2xl p-2">{friend.bio}</h1>
-              <Link className="btn btn-sm btn-primary mt-3 w-full" to={`/chat/${friend._id}`}>Message</Link>
+<h1 className="text-2xl font-bold mb-6">Friends</h1>
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+  {!isFriendListLoading && friends.length > 0 ? (
+    friends.map(friend => (
+      <div
+        key={friend._id}
+        className="w-full bg-base-200 shadow-md rounded-2xl p-3 md:p-4 hover:scale-105 transition-transform flex flex-col"
+      >
+        <div className="flex items-center gap-3 md:gap-4 mb-2">
+          <div className="avatar">
+            <div className="w-14 md:w-16 rounded-full">
+              <img src={friend.profilePicture || 'https://img.daisyui.com/images/profile/demo/gordon@192.webp'} alt={friend.name} />
             </div>
-          ))
-        ) : (
-          <div className="text-base-content/70">No friends yet.</div>
-        )}
+          </div>
+          <h2 className="font-semibold text-base md:text-lg truncate">{friend.name}</h2>
+        </div>
+        <div className="font-medium text-sm md:text-base w-full bg-base-300 rounded-2xl p-2 mb-2">{friend.bio}</div>
+        <Link className="btn btn-sm btn-primary w-full mt-auto" to={`/chat/${friend._id}`}>Message</Link>
       </div>
+    ))
+  ) : (
+    <div className="text-base-content/70">No friends yet.</div>
+  )}
+</div>
 
       <h2 className="text-xl font-semibold mb-4">Meet New People</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">

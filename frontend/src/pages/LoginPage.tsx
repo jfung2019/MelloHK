@@ -78,14 +78,16 @@ function LoginPage() {
               </div>
             </div>
           </div>
-          <button className="btn btn-primary cursor-pointer w-full" type="submit" disabled={isLoggingIn}>
-            {isLoggingIn ?
-              <div className="flex items-center gap-1">
-                <LoaderCircle className="h-5 w-5 animate-spin" />
-                Loading...
-              </div> :
-              "Sign In"}
-          </button>
+          <div className="w-full px-4 md:px-0">
+            <button className="btn btn-primary cursor-pointer w-full" type="submit" disabled={isLoggingIn}>
+              {isLoggingIn ?
+                <div className="flex items-center gap-1">
+                  <LoaderCircle className="h-5 w-5 animate-spin" />
+                  Loading...
+                </div> :
+                "Sign In"}
+            </button>
+          </div>
         </form>
         <div className="flex gap-2">
           <p>Don't have an account?</p>

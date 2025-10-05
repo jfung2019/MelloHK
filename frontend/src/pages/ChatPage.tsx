@@ -117,7 +117,7 @@ function ChatPage() {
     <div>
       <div className="h-[calc(100vh-4rem)] flex">
         {/* Channel List Sidebar */}
-        <div className="w-80 border-r border-base-300">
+        <div className="w-80 border-r border-base-300 hidden md:block">
           <Chat client={chatClient} theme={`str-chat__theme-${isDarkMode ? 'dark' : 'light'}`}>
             {authUser?._id && (
               <ChannelList

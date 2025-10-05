@@ -94,14 +94,16 @@ function SignUpPage() {
               </div>
             </div>
           </div>
-          <button className="btn btn-primary cursor-pointer w-full" type="submit" disabled={isSigningUp}>
-            {isSigningUp ?
-              <div className="flex items-center gap-1">
-                <LoaderCircle className="h-5 w-5 animate-spin" />
-                Loading...
-              </div> :
-              "Create Account"}
-          </button>
+          <div className="w-full px-4 md:px-0">
+            <button className="btn btn-primary cursor-pointer w-full" type="submit" disabled={isSigningUp}>
+              {isSigningUp ?
+                <div className="flex items-center gap-1">
+                  <LoaderCircle className="h-5 w-5 animate-spin" />
+                  Loading...
+                </div> :
+                "Create Account"}
+            </button>
+          </div>
         </form>
         <div className="flex gap-2">
           <p>Already have an account?</p>

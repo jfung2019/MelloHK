@@ -13,6 +13,7 @@ import NotificationPage from './pages/NotificationPage';
 import ProfileCompletionPage from './pages/ProfileCompletionPage';
 import MainLayout from './components/MainLayout';
 import Loading from './components/Loading';
+import ChannelListPage from './pages/ChannelListPage';
 
 function App() {
   const { authUser, checkAuthentication, isCheckingAuth } = useAuthStore();
@@ -50,7 +51,13 @@ function App() {
           <Route path="/chat/:id" element={
             authUser && authUser.profileComplete
               ?
-                <ChatPage />
+              <ChatPage />
+              : <Navigate to={!authUser ? "/login" : "/profileCompletion"} />
+          } />
+          <Route path="/chatlist" element={
+            authUser && authUser.profileComplete
+              ?
+              <ChannelListPage/>
               : <Navigate to={!authUser ? "/login" : "/profileCompletion"} />
           } />
           <Route path="/notifications" element={
